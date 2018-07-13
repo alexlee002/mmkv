@@ -1,0 +1,21 @@
+PODS:
+  - Protobuf (3.6.0)
+
+DEPENDENCIES:
+  - Protobuf (from `https://github.com/google/protobuf.git`)
+
+EXTERNAL SOURCES:
+  Protobuf:
+    :git: https://github.com/google/protobuf.git
+
+CHECKOUT OPTIONS:
+  Protobuf:
+    :commit: 237938ac6ae07d732e1147073ab3569379c313a5
+    :git: https://github.com/google/protobuf.git
+
+SPEC CHECKSUMS:
+  Protobuf: 0fc0ad8bec688b2a3017a139953e01374fedbd5f
+
+PODFILE CHECKSUM: 5862e7cce1cf3d16112043819068f4622ebe63ab
+
+COCOAPODS: 1.5.3

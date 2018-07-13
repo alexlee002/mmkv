@@ -1,0 +1,18 @@
+syntax = "proto3" ;
+
+message ALKVPair {
+ 	string name = 1;
+ 	oneof value {
+ 		bool boolVal = 2;
+ 		sint32 sint32Val = 3;
+ 		float floatVal = 4;
+ 		double doubleVal = 5;
+ 		string strVal = 6;
+ 		bytes binaryVal = 7;
+        sint64 sint64Val = 8;
+ 	}
+}
+
+message ALKVList {
+	repeated ALKVPair item = 1;
+}
