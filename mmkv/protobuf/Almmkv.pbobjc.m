@@ -49,12 +49,13 @@ static GPBFileDescriptor *AlmmkvRoot_FileDescriptor(void) {
 
 @dynamic valueOneOfCase;
 @dynamic name;
+@dynamic objcType;
 @dynamic boolVal;
 @dynamic sint32Val;
-@dynamic floatVal;
-@dynamic doubleVal;
 @dynamic strVal;
+@dynamic floatVal;
 @dynamic binaryVal;
+@dynamic doubleVal;
 @dynamic sint64Val;
 
 typedef struct ALKVPair__storage_ {
@@ -62,6 +63,7 @@ typedef struct ALKVPair__storage_ {
   int32_t sint32Val;
   float floatVal;
   NSString *name;
+  NSString *objcType;
   NSString *strVal;
   NSData *binaryVal;
   double doubleVal;
@@ -84,11 +86,20 @@ typedef struct ALKVPair__storage_ {
         .dataType = GPBDataTypeString,
       },
       {
+        .name = "objcType",
+        .dataTypeSpecific.className = NULL,
+        .number = ALKVPair_FieldNumber_ObjcType,
+        .hasIndex = 1,
+        .offset = (uint32_t)offsetof(ALKVPair__storage_, objcType),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldTextFormatNameCustom),
+        .dataType = GPBDataTypeString,
+      },
+      {
         .name = "boolVal",
         .dataTypeSpecific.className = NULL,
         .number = ALKVPair_FieldNumber_BoolVal,
         .hasIndex = -1,
-        .offset = 1,  // Stored in _has_storage_ to save space.
+        .offset = 2,  // Stored in _has_storage_ to save space.
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldTextFormatNameCustom),
         .dataType = GPBDataTypeBool,
       },
@@ -102,24 +113,6 @@ typedef struct ALKVPair__storage_ {
         .dataType = GPBDataTypeSInt32,
       },
       {
-        .name = "floatVal",
-        .dataTypeSpecific.className = NULL,
-        .number = ALKVPair_FieldNumber_FloatVal,
-        .hasIndex = -1,
-        .offset = (uint32_t)offsetof(ALKVPair__storage_, floatVal),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldTextFormatNameCustom),
-        .dataType = GPBDataTypeFloat,
-      },
-      {
-        .name = "doubleVal",
-        .dataTypeSpecific.className = NULL,
-        .number = ALKVPair_FieldNumber_DoubleVal,
-        .hasIndex = -1,
-        .offset = (uint32_t)offsetof(ALKVPair__storage_, doubleVal),
-        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldTextFormatNameCustom),
-        .dataType = GPBDataTypeDouble,
-      },
-      {
         .name = "strVal",
         .dataTypeSpecific.className = NULL,
         .number = ALKVPair_FieldNumber_StrVal,
@@ -129,6 +122,15 @@ typedef struct ALKVPair__storage_ {
         .dataType = GPBDataTypeString,
       },
       {
+        .name = "floatVal",
+        .dataTypeSpecific.className = NULL,
+        .number = ALKVPair_FieldNumber_FloatVal,
+        .hasIndex = -1,
+        .offset = (uint32_t)offsetof(ALKVPair__storage_, floatVal),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldTextFormatNameCustom),
+        .dataType = GPBDataTypeFloat,
+      },
+      {
         .name = "binaryVal",
         .dataTypeSpecific.className = NULL,
         .number = ALKVPair_FieldNumber_BinaryVal,
@@ -136,6 +138,15 @@ typedef struct ALKVPair__storage_ {
         .offset = (uint32_t)offsetof(ALKVPair__storage_, binaryVal),
         .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldTextFormatNameCustom),
         .dataType = GPBDataTypeBytes,
+      },
+      {
+        .name = "doubleVal",
+        .dataTypeSpecific.className = NULL,
+        .number = ALKVPair_FieldNumber_DoubleVal,
+        .hasIndex = -1,
+        .offset = (uint32_t)offsetof(ALKVPair__storage_, doubleVal),
+        .flags = (GPBFieldFlags)(GPBFieldOptional | GPBFieldTextFormatNameCustom),
+        .dataType = GPBDataTypeDouble,
       },
       {
         .name = "sint64Val",
@@ -163,7 +174,7 @@ typedef struct ALKVPair__storage_ {
                    firstHasIndex:-1];
 #if !GPBOBJC_SKIP_MESSAGE_TEXTFORMAT_EXTRAS
     static const char *extraTextFormatInfo =
-        "\007\002\007\000\003\t\000\004\010\000\005\t\000\006\006\000\007\t\000\010\t\000";
+        "\010\002\010\000\003\007\000\004\t\000\005\006\000\006\010\000\007\t\000\010\t\000\t\t\000";
     [localDescriptor setupExtraTextInfo:extraTextFormatInfo];
 #endif  // !GPBOBJC_SKIP_MESSAGE_TEXTFORMAT_EXTRAS
     NSAssert(descriptor == nil, @"Startup recursed!");

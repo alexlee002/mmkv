@@ -50,29 +50,32 @@ NS_ASSUME_NONNULL_BEGIN
 
 typedef GPB_ENUM(ALKVPair_FieldNumber) {
   ALKVPair_FieldNumber_Name = 1,
-  ALKVPair_FieldNumber_BoolVal = 2,
-  ALKVPair_FieldNumber_Sint32Val = 3,
-  ALKVPair_FieldNumber_FloatVal = 4,
-  ALKVPair_FieldNumber_DoubleVal = 5,
-  ALKVPair_FieldNumber_StrVal = 6,
+  ALKVPair_FieldNumber_ObjcType = 2,
+  ALKVPair_FieldNumber_BoolVal = 3,
+  ALKVPair_FieldNumber_Sint32Val = 4,
+  ALKVPair_FieldNumber_StrVal = 5,
+  ALKVPair_FieldNumber_FloatVal = 6,
   ALKVPair_FieldNumber_BinaryVal = 7,
-  ALKVPair_FieldNumber_Sint64Val = 8,
+  ALKVPair_FieldNumber_DoubleVal = 8,
+  ALKVPair_FieldNumber_Sint64Val = 9,
 };
 
 typedef GPB_ENUM(ALKVPair_Value_OneOfCase) {
   ALKVPair_Value_OneOfCase_GPBUnsetOneOfCase = 0,
-  ALKVPair_Value_OneOfCase_BoolVal = 2,
-  ALKVPair_Value_OneOfCase_Sint32Val = 3,
-  ALKVPair_Value_OneOfCase_FloatVal = 4,
-  ALKVPair_Value_OneOfCase_DoubleVal = 5,
-  ALKVPair_Value_OneOfCase_StrVal = 6,
+  ALKVPair_Value_OneOfCase_BoolVal = 3,
+  ALKVPair_Value_OneOfCase_Sint32Val = 4,
+  ALKVPair_Value_OneOfCase_StrVal = 5,
+  ALKVPair_Value_OneOfCase_FloatVal = 6,
   ALKVPair_Value_OneOfCase_BinaryVal = 7,
-  ALKVPair_Value_OneOfCase_Sint64Val = 8,
+  ALKVPair_Value_OneOfCase_DoubleVal = 8,
+  ALKVPair_Value_OneOfCase_Sint64Val = 9,
 };
 
 @interface ALKVPair : GPBMessage
 
 @property(nonatomic, readwrite, copy, null_resettable) NSString *name;
+
+@property(nonatomic, readwrite, copy, null_resettable) NSString *objcType;
 
 @property(nonatomic, readonly) ALKVPair_Value_OneOfCase valueOneOfCase;
 
@@ -80,13 +83,13 @@ typedef GPB_ENUM(ALKVPair_Value_OneOfCase) {
 
 @property(nonatomic, readwrite) int32_t sint32Val;
 
-@property(nonatomic, readwrite) float floatVal;
-
-@property(nonatomic, readwrite) double doubleVal;
-
 @property(nonatomic, readwrite, copy, null_resettable) NSString *strVal;
 
+@property(nonatomic, readwrite) float floatVal;
+
 @property(nonatomic, readwrite, copy, null_resettable) NSData *binaryVal;
+
+@property(nonatomic, readwrite) double doubleVal;
 
 @property(nonatomic, readwrite) int64_t sint64Val;
 

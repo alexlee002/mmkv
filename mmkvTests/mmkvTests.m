@@ -28,7 +28,7 @@
     
     ALKVPair *kv3 = [ALKVPair message];
     kv3.name = @"setting_1";
-    kv3.strVal = @"hello";
+//    kv3.strVal = @"hello";
     
     ALKVList *store = [ALKVList message];
     store.itemArray = @[kv1].mutableCopy;
@@ -88,7 +88,9 @@
 - (void)testALMMKVWrite {
     NSString *path = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
     path = [path stringByAppendingPathComponent:@"test.mmkv"];
-    ALMMKV *mmkv = [[ALMMKV alloc] initWithFile:path];
+    ALMMKV *mmkv = [ALMMKV mmkvWithPath:path];
+    [mmkv reset];
+    
     NSMutableDictionary *dict = [@{} mutableCopy];
     for (int i = 0; i < 10000; ++i) {
         dict[[NSString stringWithFormat:@"settings_key_string_%d", i]] = @(i);
@@ -116,8 +118,28 @@
 - (void)testMMKVRead {
     NSString *path = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
     path = [path stringByAppendingPathComponent:@"test.mmkv"];
-    ALMMKV *mmkv = [[ALMMKV alloc] initWithFile:path];
+    ALMMKV *mmkv = [ALMMKV mmkvWithPath:path];
+    [mmkv reset];
+    
     NSMutableDictionary *dict = [@{} mutableCopy];
+    for (int i = 0; i < 10000; ++i) {
+        dict[[NSString stringWithFormat:@"settings_key_string_%d", i]] = @(i);
+    }
+    for (NSString *key in dict.allKeys) {
+        [mmkv setInteger:[dict[key] intValue] forKey:key];
+    }
+    
+    [dict removeAllObjects];
+    for (int i = 0; i < 10000; ++i) {
+        dict[[NSString stringWithFormat:@"settings_key_string_%d", i]] = [NSString stringWithFormat:@"string value: %d", i];
+    }
+    for (NSString *key in dict.allKeys) {
+        [mmkv setObject:dict[key] forKey:key];
+    }
+    
+    
+    
+    [dict removeAllObjects];
     for (int i = 0; i < 10000; ++i) {
         dict[[NSString stringWithFormat:@"settings_key_string_%d", i]] = @(i);
     }
@@ -141,26 +163,128 @@
     NSLog(@"== time: %fms", t);
 }
 
-//- (void)setUp {
-//    [super setUp];
-//    // Put setup code here. This method is called before the invocation of each test method in the class.
-//}
-//
-//- (void)tearDown {
-//    // Put teardown code here. This method is called after the invocation of each test method in the class.
-//    [super tearDown];
-//}
-//
-//- (void)testExample {
-//    // This is an example of a functional test case.
-//    // Use XCTAssert and related functions to verify your tests produce the correct results.
-//}
-//
-//- (void)testPerformanceExample {
-//    // This is an example of a performance test case.
-//    [self measureBlock:^{
-//        // Put the code you want to measure the time of here.
-//    }];
-//}
+- (void)testUserDefault {
+    NSLog(@"%@", NSClassFromString(nil));
+    NSUserDefaults *dft = [NSUserDefaults standardUserDefaults];
+    NSString *intKey = @"int_key";
+    [dft setInteger:1234 forKey:intKey];
+    NSLog(@"--- int ---");
+    NSLog(@"int:      %ld", [dft integerForKey:intKey]);
+    NSLog(@"float:    %f", [dft floatForKey:intKey]);
+    NSLog(@"NSString: %@", [dft stringForKey:intKey]);
+    NSLog(@"NSData:   %@", [dft dataForKey:intKey]);
+    NSLog(@"NSObject: %@", [dft objectForKey:intKey]);
+    
+    NSString *strKey = @"str_key";
+    [dft setObject:@"1234" forKey:strKey];
+    NSLog(@"--- str ---");
+    NSLog(@"int:      %ld", [dft integerForKey:strKey]);
+    NSLog(@"float:    %f", [dft floatForKey:strKey]);
+    NSLog(@"NSString: %@", [dft stringForKey:strKey]);
+    NSLog(@"NSData:   %@", [dft dataForKey:strKey]);
+    NSLog(@"NSObject: %@", [dft objectForKey:strKey]);
+    
+    NSString *dataKey = @"data_key";
+    [dft setObject:[@"hello" dataUsingEncoding:NSUTF8StringEncoding] forKey:dataKey];
+    NSLog(@"--- data ---");
+    NSLog(@"int:      %ld", [dft integerForKey:dataKey]);
+    NSLog(@"float:    %f", [dft floatForKey:dataKey]);
+    NSLog(@"NSString: %@", [dft stringForKey:dataKey]);
+    NSLog(@"NSData:   %@", [dft dataForKey:dataKey]);
+    NSLog(@"NSObject: %@", [dft objectForKey:dataKey]);
+    
+    NSString *dateKey = @"date_key";
+    [dft setObject:[NSDate date] forKey:dateKey];
+    NSLog(@"--- data ---");
+    NSLog(@"int:      %ld", [dft integerForKey:dateKey]);
+    NSLog(@"float:    %f", [dft floatForKey:dateKey]);
+    NSLog(@"NSString: %@", [dft stringForKey:dateKey]);
+    NSLog(@"NSData:   %@", [dft dataForKey:dateKey]);
+    NSLog(@"NSObject: %@", [dft objectForKey:dateKey]);
+    
+    NSString *numKey = @"nsnumber_key";
+    [dft setObject:@12.34 forKey:numKey];
+    NSLog(@"--- nsnumber ---");
+    NSLog(@"int:      %ld", [dft integerForKey:numKey]);
+    NSLog(@"float:    %f", [dft floatForKey:numKey]);
+    NSLog(@"NSString: %@", [dft stringForKey:numKey]);
+    NSLog(@"NSData:   %@", [dft dataForKey:numKey]);
+    NSLog(@"NSObject: %@", [dft objectForKey:numKey]);
+    
+    NSString *numDataKey1 = @"num_data_key1";
+    [dft setObject:[NSKeyedArchiver archivedDataWithRootObject:@1234] forKey:numDataKey1];
+    NSLog(@"--- num data1 ---");
+    NSLog(@"int:      %ld", [dft integerForKey:numDataKey1]);
+    NSLog(@"float:    %f", [dft floatForKey:numDataKey1]);
+    NSLog(@"NSString: %@", [dft stringForKey:numDataKey1]);
+    NSLog(@"NSData:   %@", [dft dataForKey:numDataKey1]);
+    NSLog(@"NSObject: %@", [dft objectForKey:numDataKey1]);
+    
+//    NSString *numDataKey2 = @"num_data_key2";
+//    int iv = 1234;
+//    [dft setObject:[NSValue valueWithPointer:&iv] forKey:numDataKey2];
+//    NSLog(@"--- num data1 ---");
+//    NSLog(@"int:      %ld", [dft integerForKey:numDataKey2]);
+//    NSLog(@"float:    %f", [dft floatForKey:numDataKey2]);
+//    NSLog(@"NSString: %@", [dft stringForKey:numDataKey2]);
+//    NSLog(@"NSData:   %@", [dft dataForKey:numDataKey2]);
+//    NSLog(@"NSObject: %@", [dft objectForKey:numDataKey2]);
+}
+
+- (void)testProtobuf {
+    ALKVPair *kv = [ALKVPair message];
+    kv.name = @"test_int_key";
+    kv.sint32Val = 1234;
+    CFTimeInterval t = CFAbsoluteTimeGetCurrent();
+    for (int i = 0; i < 10000; ++i) {
+        [kv delimitedData];
+    }
+    NSLog(@"format int: %fms", (CFAbsoluteTimeGetCurrent() - t) * 1000);
+    
+    kv.name = @"test_str_key";
+//    kv.strVal = @"NSUserDefaults *dft = [NSUserDefaults standardUserDefaults];";
+    t = CFAbsoluteTimeGetCurrent();
+    for (int i = 0; i < 10000; ++i) {
+        [kv delimitedData];
+    }
+    NSLog(@"format str: %fms", (CFAbsoluteTimeGetCurrent() - t) * 1000);
+}
+
+- (void)testMultiThread {
+    NSString *path = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+    path = [path stringByAppendingPathComponent:@"test.mmkv"];
+    void (^mmkv_job)(NSString *) = ^(NSString *name) {
+        ALMMKV *mmkv = [ALMMKV mmkvWithPath:path];
+        
+        [mmkv setBool:YES forKey:[name stringByAppendingString:@"_bool"]];
+        NSLog(@"[JOB: %@; %@] write bool", name, mmkv);
+        
+        [mmkv setObject:[NSDate date] forKey:[name stringByAppendingString:@"_date"]];
+        NSLog(@"[JOB: %@; %@] write date", name, mmkv);
+        
+        [mmkv setObject:name forKey:[name stringByAppendingString:@"_str"]];
+        NSLog(@"[JOB: %@; %@] write string", name, mmkv);
+        
+        NSLog(@"[JOB: %@; %@] read data: %@", name, mmkv, [mmkv objectOfClass:NSDate.class forKey:[name stringByAppendingString:@"_date"]]);
+        NSLog(@"[JOB: %@; %@] read string: %@", name, mmkv, [mmkv objectOfClass:NSString.class forKey:[name stringByAppendingString:@"_str"]]);
+        NSLog(@"[JOB: %@; %@] read bool: %@", name, mmkv, [mmkv objectOfClass:NSNumber.class forKey:[name stringByAppendingString:@"_bool"]]);
+    };
+    
+    
+    dispatch_group_t group = dispatch_group_create();
+    dispatch_queue_t queue =  dispatch_queue_create("mmkv-test", DISPATCH_QUEUE_CONCURRENT);
+    
+    for (int i = 0; i < 20; ++i) {
+        dispatch_group_async(group, queue, ^{
+            mmkv_job([NSString stringWithFormat:@"MMKV-Test-%02d", i]);
+        });
+    }
+    dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
+    
+#if DEBUG
+    [ALMMKV dump];
+#endif
+    NSLog(@"== DONE ==");
+}
 
 @end

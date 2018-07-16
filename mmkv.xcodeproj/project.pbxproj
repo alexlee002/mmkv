@@ -13,7 +13,9 @@
 		435043AC20F63BA7002D4A9B /* almmkv.h in Headers */ = {isa = PBXBuildFile; fileRef = 435043A820F63BA7002D4A9B /* almmkv.h */; };
 		435043B420F63D2D002D4A9B /* mmkvTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 435043B320F63D2D002D4A9B /* mmkvTests.m */; };
 		435043B620F63D2D002D4A9B /* mmkv.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4350439920F60228002D4A9B /* mmkv.framework */; };
-		435043BF20F70121002D4A9B /* almmkv.m in Sources */ = {isa = PBXBuildFile; fileRef = 435043BE20F70121002D4A9B /* almmkv.m */; };
+		435043BF20F70121002D4A9B /* almmkv.mm in Sources */ = {isa = PBXBuildFile; fileRef = 435043BE20F70121002D4A9B /* almmkv.mm */; };
+		43760B1F20FC8D88003B93D2 /* rwlock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43760B1D20FC8D87003B93D2 /* rwlock.cpp */; };
+		43760B2020FC8D88003B93D2 /* rwlock.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 43760B1E20FC8D88003B93D2 /* rwlock.hpp */; };
 		451A67A47C24416F0D6F3A9B /* Pods_mmkvTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B7D6DA96E5F7F54D4E242E1F /* Pods_mmkvTests.framework */; };
 		5B51C854D9ABCC6AB91E99C1 /* Pods_mmkv.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 435043BC20F641A3002D4A9B /* Pods_mmkv.framework */; };
 		EE05E2A1E1D8954DC7CC3C5B /* Pods_mmkv.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 44E5F65235C6D5FC5FBD6D70 /* Pods_mmkv.framework */; };
@@ -40,7 +42,9 @@
 		435043B320F63D2D002D4A9B /* mmkvTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = mmkvTests.m; sourceTree = "<group>"; };
 		435043B520F63D2D002D4A9B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		435043BC20F641A3002D4A9B /* Pods_mmkv.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Pods_mmkv.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		435043BE20F70121002D4A9B /* almmkv.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = almmkv.m; sourceTree = "<group>"; };
+		435043BE20F70121002D4A9B /* almmkv.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = almmkv.mm; sourceTree = "<group>"; };
+		43760B1D20FC8D87003B93D2 /* rwlock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = rwlock.cpp; sourceTree = "<group>"; };
+		43760B1E20FC8D88003B93D2 /* rwlock.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = rwlock.hpp; sourceTree = "<group>"; };
 		44E5F65235C6D5FC5FBD6D70 /* Pods_mmkv.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_mmkv.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		58262C1AC3FF1EB40A240EE3 /* Pods-mmkv.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-mmkv.debug.xcconfig"; path = "Pods/Target Support Files/Pods-mmkv/Pods-mmkv.debug.xcconfig"; sourceTree = "<group>"; };
 		8FB9706C806FAC062677045F /* Pods-mmkvTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-mmkvTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-mmkvTests/Pods-mmkvTests.debug.xcconfig"; sourceTree = "<group>"; };
@@ -95,7 +99,9 @@
 			isa = PBXGroup;
 			children = (
 				435043A820F63BA7002D4A9B /* almmkv.h */,
-				435043BE20F70121002D4A9B /* almmkv.m */,
+				435043BE20F70121002D4A9B /* almmkv.mm */,
+				43760B1D20FC8D87003B93D2 /* rwlock.cpp */,
+				43760B1E20FC8D88003B93D2 /* rwlock.hpp */,
 				435043A420F63BA6002D4A9B /* protobuf */,
 				4350439D20F60228002D4A9B /* Info.plist */,
 			);
@@ -149,6 +155,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				43760B2020FC8D88003B93D2 /* rwlock.hpp in Headers */,
 				435043AC20F63BA7002D4A9B /* almmkv.h in Headers */,
 				435043AB20F63BA7002D4A9B /* Almmkv.pbobjc.h in Headers */,
 			);
@@ -312,7 +319,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				435043A920F63BA7002D4A9B /* Almmkv.pbobjc.m in Sources */,
-				435043BF20F70121002D4A9B /* almmkv.m in Sources */,
+				435043BF20F70121002D4A9B /* almmkv.mm in Sources */,
+				43760B1F20FC8D88003B93D2 /* rwlock.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

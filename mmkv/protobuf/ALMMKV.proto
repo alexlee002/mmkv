@@ -2,14 +2,15 @@ syntax = "proto3" ;
 
 message ALKVPair {
  	string name = 1;
+    string objcType = 2;
  	oneof value {
- 		bool boolVal = 2;
- 		sint32 sint32Val = 3;
- 		float floatVal = 4;
- 		double doubleVal = 5;
- 		string strVal = 6;
- 		bytes binaryVal = 7;
-        sint64 sint64Val = 8;
+ 		bool boolVal = 3;
+ 		sint32 sint32Val = 4;
+        string strVal = 5;
+ 		float floatVal = 6;
+        bytes binaryVal = 7;
+ 		double doubleVal = 8;
+        sint64 sint64Val = 9;
  	}
 }
 
