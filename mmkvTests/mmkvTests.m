@@ -89,78 +89,100 @@
     NSString *path = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
     path = [path stringByAppendingPathComponent:@"test.mmkv"];
     ALMMKV *mmkv = [ALMMKV mmkvWithPath:path];
-    [mmkv reset];
+    
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    
     
     NSMutableDictionary *dict = [@{} mutableCopy];
     for (int i = 0; i < 10000; ++i) {
-        dict[[NSString stringWithFormat:@"settings_key_string_%d", i]] = @(i);
+        dict[[NSString stringWithFormat:@"int_%d", i]] = @(i);
     }
+    
     CFTimeInterval t = CFAbsoluteTimeGetCurrent();
-   for (NSString *key in dict.allKeys) {
+    for (NSString *key in dict.allKeys) {
         [mmkv setInteger:[dict[key] intValue] forKey:key];
     }
     t = (CFAbsoluteTimeGetCurrent() - t) * 1000;
-    NSLog(@"== time: %fms", t);
+    NSLog(@"== mmkv write int; time:         %fms", t);
     
-    [mmkv reset];
+    t = CFAbsoluteTimeGetCurrent();
+    for (NSString *key in dict.allKeys) {
+        [defaults setInteger:[dict[key] intValue] forKey:key];
+        [defaults synchronize];
+    }
+    t = (CFAbsoluteTimeGetCurrent() - t) * 1000;
+    NSLog(@"== userdefaults write int; time: %fms", t);
+    
+    ///////////////////////////
     [dict removeAllObjects];
     for (int i = 0; i < 10000; ++i) {
-        dict[[NSString stringWithFormat:@"settings_key_string_%d", i]] = [NSString stringWithFormat:@"string value: %d", i];
+        dict[[NSString stringWithFormat:@"string_%d", i]] = [NSString stringWithFormat:@"string value: %d", i];
     }
     t = CFAbsoluteTimeGetCurrent();
     for (NSString *key in dict.allKeys) {
         [mmkv setObject:dict[key] forKey:key];
     }
     t = (CFAbsoluteTimeGetCurrent() - t) * 1000;
-    NSLog(@"== time: %fms", t);
+    NSLog(@"== mmkv write string; time:         %fms", t);
+    
+    t = CFAbsoluteTimeGetCurrent();
+    for (NSString *key in dict.allKeys) {
+        [defaults setObject:dict[key] forKey:key];
+        [defaults synchronize];
+    }
+    t = (CFAbsoluteTimeGetCurrent() - t) * 1000;
+    NSLog(@"== userdefaults write string; time: %fms", t);
 }
 
 - (void)testMMKVRead {
     NSString *path = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
     path = [path stringByAppendingPathComponent:@"test.mmkv"];
-    ALMMKV *mmkv = [ALMMKV mmkvWithPath:path];
-    [mmkv reset];
+    {
+        ALMMKV *mmkv = [ALMMKV mmkvWithPath:path];
+        [mmkv reset];
+        
+        NSMutableDictionary *dict = [@{} mutableCopy];
+        for (int i = 0; i < 10000; ++i) {
+            dict[[NSString stringWithFormat:@"settings_key_string_%d", i]] = @(i);
+        }
+        for (NSString *key in dict.allKeys) {
+            [mmkv setInteger:[dict[key] intValue] forKey:key];
+        }
+        
+        [dict removeAllObjects];
+        for (int i = 0; i < 10000; ++i) {
+            dict[[NSString stringWithFormat:@"settings_key_string_%d", i]] = [NSString stringWithFormat:@"string value: %d", i];
+        }
+        for (NSString *key in dict.allKeys) {
+            [mmkv setObject:dict[key] forKey:key];
+        }
+    }
     
-    NSMutableDictionary *dict = [@{} mutableCopy];
-    for (int i = 0; i < 10000; ++i) {
-        dict[[NSString stringWithFormat:@"settings_key_string_%d", i]] = @(i);
+    {
+        ALMMKV *mmkv = [ALMMKV mmkvWithPath:path];
+        NSMutableDictionary *dict = [@{} mutableCopy];
+        for (int i = 0; i < 10000; ++i) {
+            dict[[NSString stringWithFormat:@"settings_key_string_%d", i]] = @(i);
+        }
+        CFTimeInterval t = CFAbsoluteTimeGetCurrent();
+        for (NSString *key in dict.allKeys) {
+            [mmkv integerForKey:key];
+        }
+        t = (CFAbsoluteTimeGetCurrent() - t) * 1000;
+        NSLog(@"== time: %fms", t);
+        
+        [mmkv reset];
+        [dict removeAllObjects];
+        for (int i = 0; i < 10000; ++i) {
+            dict[[NSString stringWithFormat:@"settings_key_string_%d", i]] = [NSString stringWithFormat:@"string value: %d", i];
+        }
+        t = CFAbsoluteTimeGetCurrent();
+        for (NSString *key in dict.allKeys) {
+            [mmkv objectOfClass:NSString.class forKey:key];
+        }
+        t = (CFAbsoluteTimeGetCurrent() - t) * 1000;
+        NSLog(@"== time: %fms", t);
     }
-    for (NSString *key in dict.allKeys) {
-        [mmkv setInteger:[dict[key] intValue] forKey:key];
-    }
-    
-    [dict removeAllObjects];
-    for (int i = 0; i < 10000; ++i) {
-        dict[[NSString stringWithFormat:@"settings_key_string_%d", i]] = [NSString stringWithFormat:@"string value: %d", i];
-    }
-    for (NSString *key in dict.allKeys) {
-        [mmkv setObject:dict[key] forKey:key];
-    }
-    
-    
-    
-    [dict removeAllObjects];
-    for (int i = 0; i < 10000; ++i) {
-        dict[[NSString stringWithFormat:@"settings_key_string_%d", i]] = @(i);
-    }
-    CFTimeInterval t = CFAbsoluteTimeGetCurrent();
-    for (NSString *key in dict.allKeys) {
-        [mmkv integerForKey:key];
-    }
-    t = (CFAbsoluteTimeGetCurrent() - t) * 1000;
-    NSLog(@"== time: %fms", t);
-    
-    [mmkv reset];
-    [dict removeAllObjects];
-    for (int i = 0; i < 10000; ++i) {
-        dict[[NSString stringWithFormat:@"settings_key_string_%d", i]] = [NSString stringWithFormat:@"string value: %d", i];
-    }
-    t = CFAbsoluteTimeGetCurrent();
-    for (NSString *key in dict.allKeys) {
-        [mmkv objectOfClass:NSString.class forKey:key];
-    }
-    t = (CFAbsoluteTimeGetCurrent() - t) * 1000;
-    NSLog(@"== time: %fms", t);
 }
 
 - (void)testUserDefault {
@@ -253,20 +275,35 @@
     NSString *path = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
     path = [path stringByAppendingPathComponent:@"test.mmkv"];
     void (^mmkv_job)(NSString *) = ^(NSString *name) {
-        ALMMKV *mmkv = [ALMMKV mmkvWithPath:path];
+        {
+            ALMMKV *mmkv = [ALMMKV mmkvWithPath:path];
+            XCTAssertNotNil(mmkv);
+            
+            [mmkv setBool:YES forKey:[name stringByAppendingString:@"_bool"]];
+            NSLog(@"[JOB: %@; %@] write bool", name, mmkv);
+            
+            [mmkv setObject:[NSDate date] forKey:[name stringByAppendingString:@"_date"]];
+            NSLog(@"[JOB: %@; %@] write date", name, mmkv);
+            
+            [mmkv setObject:name forKey:[name stringByAppendingString:@"_str"]];
+            NSLog(@"[JOB: %@; %@] write string", name, mmkv);
+        }
         
-        [mmkv setBool:YES forKey:[name stringByAppendingString:@"_bool"]];
-        NSLog(@"[JOB: %@; %@] write bool", name, mmkv);
-        
-        [mmkv setObject:[NSDate date] forKey:[name stringByAppendingString:@"_date"]];
-        NSLog(@"[JOB: %@; %@] write date", name, mmkv);
-        
-        [mmkv setObject:name forKey:[name stringByAppendingString:@"_str"]];
-        NSLog(@"[JOB: %@; %@] write string", name, mmkv);
-        
-        NSLog(@"[JOB: %@; %@] read data: %@", name, mmkv, [mmkv objectOfClass:NSDate.class forKey:[name stringByAppendingString:@"_date"]]);
-        NSLog(@"[JOB: %@; %@] read string: %@", name, mmkv, [mmkv objectOfClass:NSString.class forKey:[name stringByAppendingString:@"_str"]]);
-        NSLog(@"[JOB: %@; %@] read bool: %@", name, mmkv, [mmkv objectOfClass:NSNumber.class forKey:[name stringByAppendingString:@"_bool"]]);
+        {
+            ALMMKV *mmkv = [ALMMKV mmkvWithPath:path];
+            XCTAssertNotNil(mmkv);
+            id obj = [mmkv objectOfClass:NSDate.class forKey:[name stringByAppendingString:@"_date"]];
+            XCTAssertNotNil(obj);
+            NSLog(@"[JOB: %@; %@] read date: %@", name, mmkv, obj);
+            
+            obj = [mmkv objectOfClass:NSString.class forKey:[name stringByAppendingString:@"_str"]];
+            XCTAssertNotNil(obj);
+            NSLog(@"[JOB: %@; %@] read str: %@", name, mmkv, obj);
+            
+            obj = [mmkv objectOfClass:NSNumber.class forKey:[name stringByAppendingString:@"_bool"]];
+            XCTAssertNotNil(obj);
+            NSLog(@"[JOB: %@; %@] read bool: %@", name, mmkv, obj);
+        }
     };
     
     
@@ -294,6 +331,31 @@
 #if DEBUG
     [ALMMKV dump];
 #endif
+}
+
+- (void)testRemoveKey {
+    NSString *path = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+    path = [path stringByAppendingPathComponent:@"test.mmkv"];
+    {
+        ALMMKV *mmkv = [ALMMKV mmkvWithPath:path];
+        [mmkv reset];
+        [mmkv setObject:[NSDate date] forKey:@"date"];
+        
+        [mmkv setObject:@"hello mmkv" forKey:@"string"];
+        NSLog(@"read string: %@", [mmkv objectOfClass:NSString.class forKey:@"string"]);
+        NSLog(@"read data:   %@", [mmkv objectOfClass:NSDate.class forKey:@"date"]);
+
+        NSLog(@"remove key: string");
+        [mmkv removeObjectForKey:@"string"];
+        NSLog(@"read string: %@", [mmkv objectOfClass:NSString.class forKey:@"string"]);
+        NSLog(@"read data:   %@", [mmkv objectOfClass:NSDate.class forKey:@"date"]);
+    }
+#if DEBUG
+    [ALMMKV dump];
+#endif
+    NSLog(@"------------");
+    NSLog(@"read string: %@", [[ALMMKV mmkvWithPath:path] objectOfClass:NSString.class forKey:@"string"]);
+    NSLog(@"read data:   %@", [[ALMMKV mmkvWithPath:path] objectOfClass:NSDate.class forKey:@"date"]);
 }
 
 @end

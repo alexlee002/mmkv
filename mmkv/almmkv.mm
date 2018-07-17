@@ -23,10 +23,22 @@ static __inline__ __attribute__((always_inline)) void almmkv_cleanup_block (__st
 }
 #endif
 
-static size_t kPageSize = 256 * 1024;
+
+static size_t   kPageSize = 256 * 1024;
+
+static NSString *const kMagicString = @"ALMMKV"; // won't change!
+static uint32_t kVersion  = 1; // mmkv file format version
+static size_t   kHeaderSize = 18; // sizeof("ALMMKV") + sizeof(version) + sizeof(content_size)
+/**
+ * file format:
+ * magic_string:    "ALMMKV"
+ * version:         uint32_t
+ * content_size:    uint64_t
+ * data:            bytes
+ */
+
 @implementation ALMMKV {
     int _fd;
-    NSString *_path;
     void *_mmptr;
     size_t _mmsize;
     size_t _cursize;
@@ -87,35 +99,76 @@ static NSMapTable<NSString *, ALMMKV *> *kInstances;
             return nil;
         }
         
-        _fd = open([path fileSystemRepresentation], O_RDWR | O_CREAT, 0666);
-        if (_fd == 0) {
-            NSAssert(NO, @"Can not open file: %@", path);
+        if(![self open:path]) {
             return nil;
         }
-        struct stat statInfo;
-        if( fstat( _fd, &statInfo ) != 0 ) {
-            [self cleanup];
-            NSAssert(NO, @"Can not read file: %@", path);
-            return nil;
-        }
-        
-        _mmsize = ((statInfo.st_size / kPageSize) + 1) * kPageSize;
-        ftruncate(_fd, _mmsize);
-        _mmptr = mmap(NULL, _mmsize, PROT_READ | PROT_WRITE, MAP_FILE | MAP_SHARED, _fd, 0);
-        if (_mmptr == MAP_FAILED) {
-            [self cleanup];
-            NSAssert(NO, @"mmap failed. error: %d", errno);
-            return nil;
-        }
-        
-        _path = [path copy];
-        [self load];
     }
     return self;
 }
 
 - (void)dealloc {
     [self cleanup];
+}
+
+- (BOOL)open:(NSString *)file {
+    _fd = open([file fileSystemRepresentation], O_RDWR | O_CREAT, 0666);
+    if (_fd == 0) {
+        NSAssert(NO, @"Can not open file: %@", file);
+        return NO;
+    }
+    
+    struct stat statInfo;
+    if( fstat( _fd, &statInfo ) != 0 ) {
+        NSAssert(NO, @"Can not read file: %@", file);
+        return NO;
+    }
+    
+    if (![self mapWithSize:((_cursize / kPageSize) + 1) * kPageSize]) {
+        return NO;
+    }
+    
+    _dict = [NSMutableDictionary dictionary];
+    if (statInfo.st_size == 0) {
+        [self resetHeaderWithContentSize:0];
+        _cursize = kHeaderSize;
+        return YES;
+    }
+    
+    char *ptr = (char *)_mmptr;
+    // read file magic code
+    NSData *data = [NSData dataWithBytes:ptr length:6];
+    if (![kMagicString isEqualToString:[NSString stringWithUTF8String:(const char *)data.bytes]]) {
+        NSAssert(NO, @"Not a mmkv file: %@", file);
+        return NO;
+    }
+    // read version
+    ptr += 6;
+    //    data = [NSData dataWithBytes:ptr length:4];
+    //    uint32_t ver = 0;
+    //    [data getBytes:&ver length:4];
+    
+    // read content-length
+    ptr += 4;
+    data = [NSData dataWithBytes:ptr length:8];
+    uint64_t dataLength = 0;
+    [data getBytes:&dataLength length:8];
+    if (dataLength + kHeaderSize > statInfo.st_size) {
+        NSAssert(NO, @"illegal file size");
+        return NO;
+    }
+    
+    // read contents
+    ptr += 8;
+    data = [NSData dataWithBytes:ptr length:dataLength];
+    NSError *error;
+    ALKVList *kvlist = [ALKVList parseFromData:data error:&error];
+    for (ALKVPair *item in kvlist.itemArray) {
+        if (item.name != nil) {
+            _dict[item.name] = item;
+        }
+    }
+    [self reallocWithExtraSize:0];
+    return YES;
 }
 
 - (void)cleanup {
@@ -225,11 +278,6 @@ static NSMapTable<NSString *, ALMMKV *> *kInstances;
 
 #pragma mark - read: private
 - (ALKVPair *)_itemForKey:(NSString *)key {
-//    dispatch_semaphore_wait(self->_lock, DISPATCH_TIME_FOREVER);
-//    ALMMKV_defer {
-//        dispatch_semaphore_signal(self->_lock);
-//    };
-    
     self->_lock.lock_read();
     ALMMKV_defer { self->_lock.unlock_read(); };
     
@@ -341,20 +389,25 @@ static NSMapTable<NSString *, ALMMKV *> *kInstances;
 }
 
 - (void)reset {
-    [_dict removeAllObjects];
+    self->_lock.lock_write();
+    ALMMKV_defer { self->_lock.unlock_write(); };
     
+    [_dict removeAllObjects];
     munmap(_mmptr, _mmsize);
-    _mmsize = kPageSize;
-    ftruncate(_fd, _mmsize);
-    _mmptr = mmap(NULL, _mmsize, PROT_READ | PROT_WRITE, MAP_FILE | MAP_SHARED, _fd, 0);
+    [self mapWithSize:kPageSize];
+    [self resetHeaderWithContentSize:0];
+}
+
+- (void)resetHeaderWithContentSize:(uint64_t)dataLength {
+    char *ptr = (char *)_mmptr;
+    memcpy(ptr, [kMagicString dataUsingEncoding:NSUTF8StringEncoding].bytes, 6);
+    ptr += 6;
+    memcpy(ptr, &kVersion, 4);
+    ptr += 4;
+    memcpy(ptr, &dataLength, 8);
 }
 
 - (void)append:(ALKVPair *)item {
-//    dispatch_semaphore_wait(self->_lock, DISPATCH_TIME_FOREVER);
-//    ALMMKV_defer {
-//         dispatch_semaphore_signal(self->_lock);
-//    };
-    
     self->_lock.lock_write();
     ALMMKV_defer { self->_lock.unlock_write(); };
     
@@ -366,36 +419,42 @@ static NSMapTable<NSString *, ALMMKV *> *kInstances;
     
     if (data.length + _cursize >= _mmsize) {
         [self reallocWithExtraSize:data.length];
+    } else {
+        memcpy((char *)_mmptr + _cursize, data.bytes, data.length);
+        _cursize += data.length;
+        
+        uint64_t dataLength = _cursize - kHeaderSize;
+        memcpy((char *)_mmptr + 10, &dataLength, 8);
     }
-    memcpy((char *)_mmptr + _cursize, data.bytes, data.length);
-    _cursize += data.length;
 }
 
-- (void)load {
-    _dict = [NSMutableDictionary dictionary];
-    NSData *data = [NSData dataWithBytes:_mmptr length:_cursize];
-    ALKVList *kvlist = [ALKVList parseFromData:data error:nil];
-    for (ALKVPair *item in kvlist.itemArray) {
-        if (item.name != nil) {
-            _dict[item.name] = item;
-        }
+- (BOOL)mapWithSize:(size_t)mapSize {
+    ftruncate(_fd, mapSize);
+    _mmptr = mmap(NULL, mapSize, PROT_READ | PROT_WRITE, MAP_FILE | MAP_SHARED, _fd, 0);
+    if (_mmptr == MAP_FAILED) {
+        NSAssert(NO, @"create mmap failed: %d", errno);
+        return NO;
     }
+    _mmsize = mapSize;
+    return YES;
 }
 
 - (void)reallocWithExtraSize:(size_t)size {
     ALKVList *kvlist = [ALKVList message];
     kvlist.itemArray = _dict.allValues.mutableCopy;
     NSData *data = kvlist.data;
-    _cursize = data.length;
+    NSUInteger dataLength = data.length;
     
-    size_t newTotalSize = _cursize + size;
+    size_t totalSize = dataLength + kHeaderSize;
+    size_t newTotalSize = totalSize + size;
     if (newTotalSize >= _mmsize) {
         munmap(_mmptr, _mmsize);
-        _mmsize = ((newTotalSize / kPageSize) + 1) * kPageSize;
-        ftruncate(_fd, _mmsize);
-        _mmptr = mmap(NULL, _mmsize, PROT_READ | PROT_WRITE, MAP_FILE | MAP_SHARED, _fd, 0);
-        memcpy(_mmptr, data.bytes, data.length);
+        [self mapWithSize:((newTotalSize / kPageSize) + 1) * kPageSize];
+        [self resetHeaderWithContentSize:0];
     }
+    memcpy((char *)_mmptr + kHeaderSize, data.bytes, dataLength);
+    memcpy((char *)_mmptr + 10, &dataLength, 8);
+    _cursize = dataLength + kHeaderSize;
 }
 
 #if DEBUG
