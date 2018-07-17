@@ -24,7 +24,7 @@ static __inline__ __attribute__((always_inline)) void almmkv_cleanup_block (__st
 #endif
 
 
-static size_t   kPageSize = 256 * 1024;
+static size_t   kPageSize = 512 * 1024;
 
 static NSString *const kMagicString = @"ALMMKV"; // won't change!
 static uint32_t kVersion  = 1; // mmkv file format version
@@ -123,7 +123,8 @@ static NSMapTable<NSString *, ALMMKV *> *kInstances;
         return NO;
     }
     
-    if (![self mapWithSize:((_cursize / kPageSize) + 1) * kPageSize]) {
+    
+    if (![self mapWithSize:((statInfo.st_size / kPageSize) + 1) * kPageSize]) {
         return NO;
     }
     
@@ -152,18 +153,18 @@ static NSMapTable<NSString *, ALMMKV *> *kInstances;
     data = [NSData dataWithBytes:ptr length:8];
     uint64_t dataLength = 0;
     [data getBytes:&dataLength length:8];
-    if (dataLength + kHeaderSize > statInfo.st_size) {
-        NSAssert(NO, @"illegal file size");
-        return NO;
-    }
+//    if (dataLength + kHeaderSize > statInfo.st_size) {
+//        NSAssert(NO, @"illegal file size");
+//        return NO;
+//    }
     
     // read contents
     ptr += 8;
-    data = [NSData dataWithBytes:ptr length:dataLength];
+    data = [NSData dataWithBytes:ptr length:MIN(dataLength, statInfo.st_size - kHeaderSize)];
     NSError *error;
     ALKVList *kvlist = [ALKVList parseFromData:data error:&error];
     for (ALKVPair *item in kvlist.itemArray) {
-        if (item.name != nil) {
+        if (item.name != nil && ![item.objcType isEqualToString:@"NSNull"]) {
             _dict[item.name] = item;
         }
     }
@@ -441,7 +442,11 @@ static NSMapTable<NSString *, ALMMKV *> *kInstances;
 
 - (void)reallocWithExtraSize:(size_t)size {
     ALKVList *kvlist = [ALKVList message];
-    kvlist.itemArray = _dict.allValues.mutableCopy;
+    for (ALKVPair *item in _dict.allValues) {
+        if (![item.objcType isEqualToString:@"NSNull"]) {
+            [kvlist.itemArray addObject:item];
+        }
+    }
     NSData *data = kvlist.data;
     NSUInteger dataLength = data.length;
     
