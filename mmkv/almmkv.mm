@@ -429,12 +429,12 @@ static NSMapTable<NSString *, ALMMKV *> *kInstances;
 }
 
 - (BOOL)mapWithSize:(size_t)mapSize {
-    ftruncate(_fd, mapSize);
     _mmptr = mmap(NULL, mapSize, PROT_READ | PROT_WRITE, MAP_FILE | MAP_SHARED, _fd, 0);
     if (_mmptr == MAP_FAILED) {
         NSAssert(NO, @"create mmap failed: %d", errno);
         return NO;
     }
+    ftruncate(_fd, mapSize);
     _mmsize = mapSize;
     return YES;
 }
