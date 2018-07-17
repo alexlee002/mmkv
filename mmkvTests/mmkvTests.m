@@ -164,7 +164,6 @@
 }
 
 - (void)testUserDefault {
-    NSLog(@"%@", NSClassFromString(nil));
     NSUserDefaults *dft = [NSUserDefaults standardUserDefaults];
     NSString *intKey = @"int_key";
     [dft setInteger:1234 forKey:intKey];
@@ -285,6 +284,16 @@
     [ALMMKV dump];
 #endif
     NSLog(@"== DONE ==");
+}
+
+- (void)testDefaultMMKV {
+    [[ALMMKV defaultMMKV] reset];
+    [[ALMMKV defaultMMKV] setObject:@"hello mmkv" forKey:@"string"];
+    NSLog(@"read string: %@", [[ALMMKV defaultMMKV] objectOfClass:NSString.class forKey:@"string"]);
+    
+#if DEBUG
+    [ALMMKV dump];
+#endif
 }
 
 @end

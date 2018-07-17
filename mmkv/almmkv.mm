@@ -36,12 +36,13 @@ static size_t kPageSize = 256 * 1024;
 }
 
 + (instancetype)defaultMMKV {
-#if TARGET_OS_MAC || TARGET_OS_OSX
+#if TARGET_OS_IPHONE || TARGET_OS_IOS || TARGET_OS_WATCH || TARGET_OS_TV || TARGET_OS_SIMULATOR
+    NSString *path = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+#else
     NSString *path = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES).firstObject;
     path = [path stringByAppendingPathComponent:[NSBundle mainBundle].bundleIdentifier];
-#else
-    NSString *path = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
 #endif
+    path = [path stringByAppendingPathComponent:@"default.mmkv"];
     return [self mmkvWithPath:path];
 }
 
@@ -107,7 +108,6 @@ static NSMapTable<NSString *, ALMMKV *> *kInstances;
             return nil;
         }
         
-//        _lock = dispatch_semaphore_create(1);
         _path = [path copy];
         [self load];
     }
@@ -402,10 +402,6 @@ static NSMapTable<NSString *, ALMMKV *> *kInstances;
 + (void)dump {
     typeof(kInstances) tmp = kInstances;
     NSLog(@"instances: %@", tmp);
-    for (NSString *path in tmp.keyEnumerator) {
-        ALMMKV *mmkv = [tmp objectForKey:path];
-        NSLog(@"path: %@\n%@", path, mmkv);
-    }
 }
 #endif
 @end
